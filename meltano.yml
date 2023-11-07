@@ -1,0 +1,29 @@
+version: 1
+send_anonymous_usage_stats: true
+project_id: "tap-simplesat"
+default_environment: test
+environments:
+- name: test
+plugins:
+  extractors:
+  - name: "tap-simplesat"
+    namespace: "tap_simplesat"
+    pip_url: -e .
+    capabilities:
+    - state
+    - catalog
+    - discover
+    - about
+    - stream-maps
+    config:
+      start_date: '2023-01-01T00:00:00Z'
+      auth_token: ${SIMPLESAT_API_KEY}
+    settings:
+    - name: auth_token
+      kind: password
+    - name: start_date
+      kind: date_iso8601
+  loaders:
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl

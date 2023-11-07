@@ -1,0 +1,1374 @@
+{
+	"info": {
+		"name": "Simplesat API (v1)",
+		"description": "Welcome to the Simplesat API reference!\n\nThe public endpoints are stable but still a work in progress. If you have any questions or see any issues, please reach out to us at [support@simplesat.io](https://mailto:support@simplesat.io).\n\n# Authentication\n\nYou need a Simplesat account with an API key to make requests. To find your key, log into your Simplesat account and head over to **Admin** > **Account Settings**.\n\nTo authenticate, use the API key in a `X-Simplesat-Token` header.\n\n| Key | Value |\n| --- | --- |\n| X-Simplesat-Token | Your access token |\n\n# Pagination\n\nBy default, most list endpoints return a maximum of 100 records per page. You can change the number of records on a per-request basis by passing a `page_size` parameter in the request URL parameters. Example: `page_size=50`.\n\nWhen the response exceeds the per-page maximum, you can paginate through the records by incrementing the page parameter. Example: `page=3`. List results include `next` and `previous` URLs in the response body for easier navigation:\n\n```\n{\n    \"answers\": [...],\n    \"count\": 106,\n    \"next\": \"https://api.simplesat.io/api/v1/questions?page=2\",\n    \"previous\": null,\n}\n\n ```\n\nStop paging when the `next` attribute is `null`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Answers",
+			"item": [
+				{
+					"name": "Get an answer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/answers/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"answers",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get an answer",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/answers/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"answers",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 11060778,\n    \"choice\": \"3\",\n    \"choice_label\": \"Okay, but not great.\",\n    \"sentiment\": \"Neutral\",\n    \"comment\": null,\n    \"follow_up_answer\": \"Great service, but response time could have been a bit faster.\",\n    \"follow_up_answer_choice\": null,\n    \"follow_up_question\": null,\n    \"published_as_testimonial\": false,\n    \"created\": \"2021-12-13T10:42:39.410573Z\",\n    \"modified\": \"2021-12-13T10:42:39.410608Z\",\n    \"question\": {\n        \"id\": 44993,\n        \"text\": \"How did we do?\",\n        \"metric\": \"csat\"\n    },\n    \"survey\": {\n        \"id\": 16738,\n        \"name\": \"CSAT survey\"\n    },\n    \"response_id\": 6134350\n}"
+						}
+					]
+				},
+				{
+					"name": "Search answers",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses"
+							]
+						},
+						"description": "Retrieve answers by applying specific filters in the request body.\n\nIf the request body is left empty, the API will return all answers from the last 30 days by default. Including only a `start_date` field will yield answers from the date specified up to 30 days prior.\n\n## Request fields\n\n| **Attribute** | Type | Description |\n| --- | --- | --- |\n| start_date | datetime | The date and time in ISO 8601 format to start displaying answers. |\n| end_date | datetime | The date and time in ISO 8601 format to end displaying answers. |\n| operator | string | `\"and\"` - all filters must match.  <br>`\"or\"` - at least one filter must match. |\n| filters | array of objects | Includes one or more `key`/`values` pairs to use as filters. |\n| key | string | The field name to filter (see all available fields in the table below). |\n| attribute | string | Use to define the field name for nested customer, ticket, or team member custom attributes. See below for how to find custom attribute field names. |\n| values | array | The value or values for the `key` field. Single values still must be wrapped in brackets. Separate multiple values by a comma within the brackets.  <br>  <br>Example: `\"values\": [\"tester@example.com\"]` |\n| comparison | string | Supports: `is`, `is_not`, `contains`, `does_not_contain`, `is_unknown`, `has_any_value`.  <br>  <br>The `is_unknown` and `has_any_value` comparisons still require a value to be present in the filter, but the value is ignored. So for example, you could just use `\"values\": [\"-\"]`. |\n\n## Key fields\n\n| **Attribute** | **Value type** | **Description** |\n| --- | --- | --- |\n| choice_value | integer | Also referred to as \"rating value\". |\n| collaborator | string | The email address of a team member associated with a response (in Simplesat, \"collaborators\" are team members associated with responses, while the \"team_member\" field is the primary collaborator). |\n| company | string | Company name. |\n| comment | string | Use the `has_any_value` comparison to search for responses or answers containing a comment. |\n| customer | string | Customer full name. |\n| customer.email | string | Customer email. |\n| ip | string | Use the `contains` comparison as most feedback are associated with multiple IP addresses. |\n| metric | string | Available options: `NPS`, `CES`, `CSAT`, `5-STAR`. |\n| sentiment | string | Available options: `positive`, `neutral`, `negative` |\n| source | string | `is` and `is_not` comparisons expect the source ID. Use `contains` to search by source name. |\n| survey | string | Expects a 43 character survey key found in rating URLs. |\n| survey_id | integer | Expects the survey ID which you can find through the API. |\n| tag | string | `is` and `is_not` comparisons expect the tag ID. Use `contains` to earch by tag name. |\n| team_member | string | Team member name. |\n| team_member.email | string | Team member email. |\n| team_member.id | string | Team member external ID. |\n| ticket_id | string | Ticket ID. |\n| customer.attributes | string | Add the `attribute` field to define the custom attribute key. |\n| ticket.attributes | string | Add the `attribute` field to define the custom attribute key. |\n\n## Filtering with custom attributes\n\nFiltering by customer and ticket custom attributes is supported.\n\nTo do so, enter `customer.attribute` or `ticket.attribute` as the `key`.\n\nAdd the `attribute` field that includes the field name.\n\n_Example:_\n\n``` json\n\"filters\": [\n        {\n            \"key\": \"customer.attribute\",\n            \"attribute\": \"upload_country\",\n            \"values\": [\"United States\"],\n            \"comparison\": \"is_not\"\n        }\n    ]\n\n ```\n\nFinding the correct attribute field name is currently a little tricky, as Simplesat appends prefixes to custom attributes depending on where they were created.\n\nTo find the full attribute value:\n\n- Create a filter in the Simplesat dashboard that includes the field that you want to use.\n    \n- Open the Network tab in developer tools.\n    \n- Find the request named `?limit=20&offset=0`.\n    \n- Click on the Payload tab.\n    \n- From there, you should see the full field name. In the example below, the field displayed as `latest_nps` in the dashboard is `int_attribute_latest_nps`.\n    \n\n<img src=\"https://content.pstmn.io/fbe25d9e-d220-473a-9f49-0059e2edb23c/aW1hZ2UucG5n\" width=\"2272\" height=\"1530\">"
+					},
+					"response": [
+						{
+							"name": "Search answers",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"start_date\": \"2023-04-11T17:00:00Z\",\n    \"end_date\": \"2023-07-10T16:59:59Z\",\n    \"operator\": \"and\",\n    \"filters\": [\n        {\n            \"key\": \"customer.email\",\n            \"values\": [\"tester@example.com\"],\n            \"comparison\": \"is\"\n        },\n        {\n            \"key\": \"team_member_email\",\n            \"values\": [\"jane@example.com\",\"john@example.com\"],\n            \"comparison\": \"is\"\n        },\n\t\t\t\t{\n            \"key\": \"question_id\",\n            \"values\": [1901],\n            \"comparison\": \"is\"\n        },\n\t\t\t\t{\n            \"key\": \"survey_id\",\n            \"values\": [11432, 23234],\n            \"comparison\": \"contains\"\n        },\n\t\t\t\t{\n            \"key\": \"sentiment\",\n            \"values\": [\"positive\"],\n            \"comparison\": \"is\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/answers/search",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"answers",
+										"search"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"next\": \"https://api.simplesat.io/api/v1/answers/search/?page=2\",\n    \"previous\": null,\n    \"count\": 218,\n    \"answers\": [\n        {\n            \"id\": 24548190,\n            \"choice\": null,\n            \"choice_label\": null,\n            \"choices\": null,\n            \"comment\": \"great!\",\n            \"follow_up_answer\": null,\n            \"follow_up_answer_choice\": null,\n            \"follow_up_answer_choices\": null,\n            \"published_as_testimonial\": false,\n            \"created\": \"2023-08-30T15:11:28Z\",\n            \"modified\": \"2023-08-30T15:11:28.434920Z\",\n            \"question\": {\n                \"id\": 150284,\n                \"text\": \"Any other feedback on web-embed surveys?\",\n                \"metric\": \"custom\"\n            },\n            \"sentiment\": null,\n            \"survey\": {\n                \"id\": 111976,\n                \"name\": \"Web embed\"\n            },\n            \"response_id\": 12922108\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Update an answer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/answers/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"answers",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update an answer",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "abcd1234",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"choice\": \"4\",\n    \"comment\": null,\n    \"follow_up_answer\": \"Everything was amazing!!!\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/answers/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"answers",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 1106178,\n    \"choice\": \"4\",\n    \"choice_label\": \"Great, I'm satisfied.\",\n    \"sentiment\": \"Positive\",\n    \"comment\": null,\n    \"follow_up_answer\": \"Everything was amazing!!!\",\n    \"follow_up_answer_choice\": null,\n    \"published_as_testimonial\": false,\n    \"created\": \"2021-12-13T10:42:39.410573Z\",\n    \"modified\": \"2021-12-23T13:26:58.927701Z\",\n    \"question\": {\n        \"id\": 44992,\n        \"text\": \"How did we do?\",\n        \"metric\": \"csat\"\n    },\n    \"survey\": {\n        \"id\": 16738,\n        \"name\": \"CSAT survey\"\n    },\n    \"response_id\": 6254350\n}"
+						}
+					]
+				}
+			],
+			"description": "## Answer model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| choice | String |  |\n| choices | Array | Used for multi-select answers. |\n| comment | String |  |\n| follow_up_answer | String | Used when the answer is in the form of a comment. |\n| follow_up_answer_choice | String | Used when the answer is from a multiple choice or sliding scale question type. |\n| follow_up_answer_choices | Array | Used for multi-select follow-up answers. |\n| modified | DateTime |  |\n| created | DateTime |  |\n| survey_id | Number |  |\n| response_id | Number |  |"
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "Create or update a customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/customers",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create or update a customer",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"external_id\": 456456,\n    \"name\": \"John Doe\",\n    \"email\": \"jdoe@example.com\",\n    \"company\": \"Rindge, Inc.\",\n    \"tags\": [\"sassy\",\"snooty\"],\n    \"custom_attributes\": {\n        \"Company Status\": \"Active\",\n        \"Fav color\": \"Blue\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/customers",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"customers"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 13592933,\n    \"external_id\": 456456,\n    \"name\": \"John Doe\",\n    \"email\": \"jdoe@example.com\",\n    \"company\": \"Rindge, Inc.\",\n    \"tags\": [\n        \"sassy\",\n        \"snooty\"\n    ],\n    \"custom_attributes\": {\n        \"Company Status\": \"Active\",\n        \"Fav color\": \"Blue\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update a customer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/customers/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update a customer",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"external_id\": 456456,\n    \"name\": \"John Doe\",\n    \"company\": \"Rindge, Inc.\",\n    \"tags\": [\"sassy\",\"snooty\"],\n    \"custom_attributes\": {\n        \"Company Status\": \"Active\",\n        \"Fav color\": \"Blue\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/customers/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"customers",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 13592933,\n    \"external_id\": 456456,\n    \"name\": \"John Doe\",\n    \"email\": \"jdoe@example.com\",\n    \"company\": \"Rindge, Inc.\",\n    \"tags\": [\n        \"sassy\",\n        \"snooty\"\n    ],\n    \"custom_attributes\": {\n        \"Company Status\": \"Active\",\n        \"Fav color\": \"Blue\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get a customer",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/customers/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customers",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get a customer",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/customers/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"customers",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 13592933,\n    \"external_id\": null,\n    \"name\": \"John Doe\",\n    \"email\": \"jdoe@example.com\",\n    \"company\": \"Rindge, Inc.\",\n    \"tags\": [\n        \"sassy\",\n        \"snooty\"\n    ],\n    \"custom_attributes\": {\n        \"Company Status\": \"Active\",\n        \"Fav color\": \"Blue\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "## Customer model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| external\\_id | String |  |\n| name | String |  |\n| email | String |  |\n| custom\\_attributes | Object |  |\n| tags | Array |  |"
+		},
+		{
+			"name": "Questions",
+			"item": [
+				{
+					"name": "List questions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/questions",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"questions"
+							]
+						},
+						"description": "## Query parameters\n\n| **Parameter** | **Description** |\n| --- | --- |\n| metric | Filter questions by csat, nps, or ces. |\n| survey\\_id | Filter questions by a survey's ID. |"
+					},
+					"response": [
+						{
+							"name": "List questions",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/questions",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"questions"
+									],
+									"query": [
+										{
+											"key": "metric",
+											"value": null,
+											"disabled": true
+										},
+										{
+											"key": "survey_id",
+											"value": null,
+											"disabled": true
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"next\": \"https://api.simplesat.io/api/v1/questions?page=2\",\n    \"previous\": null,\n    \"count\": 427,\n    \"questions\": [\n        {\n            \"id\": 58406,\n            \"survey\": {\n               \"id\": 16738,\n               \"name\": \"CSAT survey\"\n            },\n            \"order\": 1,\n            \"metric\": \"csat\",\n            \"text\": \"How did we do?\",\n            \"rating_scale\": true,\n            \"required\": true,\n            \"choices\": [\n                \"1\",\n                \"2\",\n                \"3\",\n                \"4\",\n                \"5\"\n            ],\n            \"rules\": [\n                {\n                    \"conditions\": [\n                        \"negative\"\n                    ],\n                    \"action\": \"display_follow_up_question\",\n                    \"question\": {\n                        \"id\": 2510,\n                        \"text\": \"I'm sorry to have let you down, how could I improve?\",\n                        \"required\": false,\n                        \"choices\": [],\n                        \"rules\": []\n                    }\n                },\n                {\n                    \"conditions\": [\n                        \"neutral\"\n                    ],\n                    \"action\": \"display_follow_up_question\",\n                    \"question\": {\n                        \"id\": 2511,\n                        \"text\": \"Can you share your experience and how I could have done a little better?\",\n                        \"required\": false,\n                        \"choices\": [],\n                        \"rules\": []\n                    }\n                },\n                {\n                    \"conditions\": [\n                        \"positive\"\n                    ],\n                    \"action\": \"display_follow_up_question\",\n                    \"question\": {\n                        \"id\": 2512,\n                        \"text\": \"Was there anything in particular I did that delighted you?\",\n                        \"required\": false,\n                        \"choices\": [],\n                        \"rules\": []\n                    }\n                }\n            ]\n        },\n        {\n            \"id\": 58410,\n            \"survey\": {\n               \"id\": 16735,\n               \"name\": \"CSAT survey\"\n            },\n            \"order\": 2,\n            \"metric\": \"custom\",\n            \"text\": \"How helpful do you find our video tutorials?\",\n            \"rating_scale\": true,\n            \"required\": false,\n            \"choices\": [\n                \"1\",\n                \"2\",\n                \"3\",\n                \"4\",\n                \"5\"\n            ]\n        },\n        {\n            \"id\": 58411,\n            \"survey\": {\n               \"id\": 16739,\n               \"name\": \"CSAT survey\"\n            },\n            \"order\": 3,\n            \"metric\": \"custom\",\n            \"text\": \"Did you find what you were looking for today?\",\n            \"rating_scale\": false,\n            \"required\": false,\n            \"choices\": [\n                \"Yes\",\n                \"No\"\n            ]\n        }\n    ]\n}"
+						}
+					]
+				}
+			],
+			"description": "## Question model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| survey_id | Number |  |\n| order | Number |  |\n| metric | String |  |\n| text | String |  |\n| rating_scale | Boolean |  |\n| required | Boolean |  |\n| choices | Array |  |\n| rules | Array |  |\n\n## Rules model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| conditions | Array |  |\n| action | String |  |\n| question | Object |  |"
+		},
+		{
+			"name": "Responses",
+			"item": [
+				{
+					"name": "Get a response",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses",
+								"{{id}}"
+							]
+						},
+						"description": "Retrieve a single response by ID."
+					},
+					"response": [
+						{
+							"name": "Get a response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n   \"id\":6154350,\n   \"survey\":{\n      \"id\":17072,\n      \"name\":\"Satisfaction Survey\"\n   },\n   \"tags\":[\n      \"VIP\",\n      \"support request\"\n   ],\n   \"created\":\"2021-12-13T10:42:39.340742Z\",\n   \"modified\":\"2021-12-13T10:43:28.723487Z\",\n   \"ticket\":{\n      \"id\":6182024,\n      \"external_id\":\"119265800000334\",\n      \"subject\":\"PRINTER JAM!!!!1\",\n      \"custom_attributes\":{\n         \n      }\n   },\n   \"team_members\":[\n      {\n         \"external_id\":\"2340424\",\n         \"name\":\"John Doe\",\n         \"email\":\"jdoe@example.com\",\n         \"custom_attributes\":{\n            \"group\":\"Support\",\n            \"language\":\"English\"\n         },\n         \"role\":\"Assignee\",\n         \"is_primary\":true\n      }\n   ],\n   \"customer\":{\n      \"id\":13592781,\n      \"external_id\":\"9942423132967\",\n      \"name\":\"Jackson Doe\",\n      \"email\":\"jackson@example.com\",\n      \"company\":\"Rindge, Inc.\",\n      \"tags\":[\n         \"funny\",\n         \"vip\"\n      ],\n      \"custom_attributes\":{\n         \"area\":\"area51\",\n         \"type\":\"IT\"\n      }\n   },\n   \"answers\":[\n      {\n         \"id\":11261044,\n         \"question\": {\n                \"id\": 44993,\n                \"text\": \"How did we do?\",\n                \"metric\": \"csat\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Great, I'm satisfied.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":\"THE PRINTER IS WORKING AGAIN!!!\",\n         \"follow_up_answer_choice\": null,\n            \"follow_up_question\": {\n                \"id\": 42634,\n                \"text\": \"Was there anything in particular we did that delighted you?\",\n                \"metric\": \"custom\"\n            }\n      },\n      {\n         \"id\":11261046,\n         \"question\": {\n                \"id\": 4494499793,\n                \"text\": \"How is our responsiveness?\",\n                \"metric\": \"custom\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"It's great.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":null,\n         \"follow_up_answer_choice\": null,\n         \"follow_up_question\": null\n      },\n      {\n         \"id\":11261047,\n         \"question\": {\n                \"id\": 44991,\n                \"text\": \"Anything else?\",\n                \"metric\": \"custom\"\n            },\n         \"choice\":null,\n         \"choice_label\":null,\n         \"sentiment\":null,\n         \"comment\":\"Love you!\",\n         \"follow_up_answer\":null,\n         \"follow_up_answer_choice\": null,\n         \"follow_up_question\": null\n      }\n   ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Search responses",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"start_date\": \"2022-06-16T16:35:39.914592Z\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses/search",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses",
+								"search"
+							]
+						},
+						"description": "Retrieve responses by applying specific filters in the request body.\n\nIf the request body is left empty, the API will return all responses from the last 30 days by default.\n\nIncluding only a `start_date` field will return all responses from the date specified up to 30 days after.\n\n## Request fields\n\n| **Attribute** | Type | Description |\n| --- | --- | --- |\n| start_date | datetime | The date and time in ISO 8601 format to start displaying responses. |\n| end_date | datetime | The date and time in ISO 8601 format to end displaying responses. |\n| operator | string | `\"and\"` - all filters must match.  <br>`\"or\"` - at least one filter must match. |\n| filters | array of objects | Includes one or more `key`/`values` pairs to use as filters. |\n| key | string | The field name to filter (see all available fields in the table below). |\n| attribute | string | Use to define the field name for nested customer, ticket, or team member custom attributes. See below for how to find custom attribute field names. |\n| values | array | The value or values for the `key` field. Single values still must be wrapped in brackets. Separate multiple values by a comma within the brackets.  <br>  <br>Example: `\"values\": [\"tester@example.com\"]` |\n| comparison | string | Supports: `is`, `is_not`, `contains`, `does_not_contain`, `is_unknown`, `has_any_value`.  <br>  <br>The `is_unknown` and `has_any_value` comparisons still require a value to be present in the filter, but the value is ignored. So for example, you could just use `\"values\": [\"-\"]`. |\n\n## Key fields\n\n| **Attribute** | **Value type** | **Description** |\n| --- | --- | --- |\n| choice_value | integer | Also referred to as \"rating value\". |\n| collaborator | string | The email address of a team member associated with a response (in Simplesat, \"collaborators\" are team members associated with responses, while the \"team_member\" field is the primary collaborator). |\n| company | string | Company name. |\n| comment | string | Use the `has_any_value` comparison to search for responses or answers containing a comment. |\n| customer | string | Customer full name. |\n| customer.email | string | Customer email. |\n| ip | string | Use the `contains` comparison as most feedback are associated with multiple IP addresses. |\n| metric | string | Available options: `NPS`, `CES`, `CSAT`, `5-STAR`. |\n| sentiment | string | Available options: `positive`, `neutral`, `negative` |\n| source | string | `is` and `is_not` comparisons expect the source ID. Use `contains` to search by source name. |\n| survey | string | Expects a 43 character survey key found in rating URLs. |\n| survey_id | integer | Expects the survey ID which you can find through the API. |\n| tag | string | `is` and `is_not` comparisons expect the tag ID. Use `contains` to earch by tag name. |\n| team_member | string | Team member name. |\n| team_member.email | string | Team member email. |\n| team_member.id | string | Team member external ID. |\n| ticket_id | string | Ticket ID. |\n| customer.attributes | string | Add the `attribute` field to define the custom attribute key. |\n| ticket.attributes | string | Add the `attribute` field to define the custom attribute key. |\n\n## Filtering with custom attributes\n\nFiltering by customer and ticket custom attributes is supported.\n\nTo do so, enter `customer.attribute` or `ticket.attribute` as the `key`.\n\nAdd the `attribute` field that includes the field name.\n\n_Example:_\n\n``` json\n\"filters\": [\n        {\n            \"key\": \"customer.attribute\",\n            \"attribute\": \"upload_country\",\n            \"values\": [\"United States\"],\n            \"comparison\": \"is_not\"\n        }\n    ]\n\n ```\n\nFinding the correct attribute field name is currently a little tricky, as Simplesat appends prefixes to custom attributes depending on where they were created.\n\nTo find the full attribute value:\n\n- Create a filter in the Simplesat dashboard that includes the field that you want to use.\n- Open the Network tab in developer tools.\n- Find the request named `?limit=20&offset=0`.\n- Click on the Payload tab.\n- From there, you should see the full field name. In the example below, the field displayed as `latest_nps` in the dashboard is `int_attribute_latest_nps`.\n    \n\n<img src=\"https://content.pstmn.io/fbe25d9e-d220-473a-9f49-0059e2edb23c/aW1hZ2UucG5n\" width=\"2272\" height=\"1530\">"
+					},
+					"response": [
+						{
+							"name": "Search responses",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"start_date\": \"2023-04-11T17:00:00Z\",\n    \"end_date\": \"2023-07-10T16:59:59Z\",\n    \"operator\": \"and\",\n    \"filters\": [\n        {\n            \"key\": \"customer.email\",\n            \"values\": [\"tester@example.com\"],\n            \"comparison\": \"is\"\n        },\n        {\n            \"key\": \"team_member_email\",\n            \"values\": [\"jane@example.com\",\"john@example.com\"],\n            \"comparison\": \"is\"\n        },\n\t\t\t\t{\n            \"key\": \"question_id\",\n            \"values\": [1901],\n            \"comparison\": \"is\"\n        },\n\t\t\t\t{\n            \"key\": \"survey_id\",\n            \"values\": [11432, 23234],\n            \"comparison\": \"contains\"\n        },\n\t\t\t\t{\n            \"key\": \"sentiment\",\n            \"values\": [\"positive\"],\n            \"comparison\": \"is\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses/search",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses",
+										"search"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"next\": null,\n    \"previous\": null,\n    \"count\": 94,\n    \"responses\": [\n        {\n            \"id\": 12304590,\n            \"survey\": {\n                \"id\": 91021,\n                \"name\": \"CSAT Survey\"\n            },\n            \"tags\": null,\n            \"created\": \"2023-07-10T03:20:28.604939Z\",\n            \"ticket\": {\n                \"id\": 12323413,\n                \"external_id\": \"0Xz4zx9eefs\",\n                \"subject\": null\n            },\n            \"team_members\": null,\n            \"customer\": {\n                \"id\": 18578132,\n                \"external_id\": \"45506\",\n                \"name\": \"Tom Jones\",\n                \"email\": \"tom@example.com\",\n                \"company\": \"Test, Inc.\",\n                \"tags\": [\n                    \"Needs follow-up\"\n                ],\n                \"custom_attributes\": {\n                    \"plan\": \"pro\"\n                }\n            },\n            \"answers\": [\n                {\n                    \"id\": 23227520,\n                    \"question\": {\n                        \"id\": 132021,\n                        \"text\": \"How did we do?\",\n                        \"metric\": \"csat\"\n                    },\n                    \"choice\": \"4\",\n                    \"choices\": null,\n                    \"comment\": null,\n                    \"sentiment\": \"positive\",\n                    \"follow_up_answer\": null,\n                    \"choice_label\": \"Great, I'm satisfied\",\n                    \"follow_up_answer_choice\": null,\n                    \"follow_up_answer_choices\": [\n                        \"moon\"\n                    ],\n                    \"follow_up_question\": {\n                        \"id\": 132032,\n                        \"text\": \"Was there anything in particular we did that delighted you?\",\n                        \"metric\": \"custom\"\n                    }\n                }\n            ]\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Create or update a response",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create or update a response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"survey_id\": 10009,\n    \"tags\": [\n        \"VIP\",\n        \"support request\"\n    ],\n    \"ticket\": {\n        \"external_id\": \"119265800000334\",\n        \"subject\": \"PRINTER JAM!!!!1\",\n        \"custom_attributes\": {}\n    },\n    \"team_members\": [\n        {\n            \"id\": 42446,\n            \"role\": \"Assignee\",\n            \"is_primary\": true\n        }\n    ],\n    \"customer_id\": 12766081,\n    \"answers\": [\n        {\n            \"question_id\": 44993,\n            \"choice\": \"4\",\n            \"comment\": null,\n            \"follow_up_answer\": \"THE PRINTER IS WORKING AGAIN!!!\"\n        },\n        {\n            \"question_id\": 44997,\n            \"choice\": \"4\",\n            \"comment\": null,\n            \"follow_up_answer\": null\n        },\n        {\n            \"question_id\": 44991,\n            \"choice\": null,\n            \"comment\": \"Love you!\",\n            \"follow_up_answer\": null\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses/",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses",
+										""
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n   \"survey\":{\n      \"id\":17072,\n      \"name\":\"Satisfaction Survey\"\n   },\n   \"ticket\":{\n      \"id\":6287916,\n      \"external_id\":\"119265800000334\",\n      \"subject\":\"PRINTER JAM!!!!1\",\n      \"custom_attributes\":{\n         \n      }\n   },\n   \"team_members\":[\n      {\n         \"external_id\":\"2340424\",\n         \"name\":\"John Doe\",\n         \"email\":\"jdoe@example.com\",\n         \"custom_attributes\":{\n            \"group\":\"Support\",\n            \"language\":\"English\"\n         },\n         \"role\":\"Assignee\",\n         \"is_primary\":true\n      }\n   ],\n   \"customer\":{\n      \"id\":13592781,\n      \"external_id\":\"9942423132967\",\n      \"name\":\"Jackson Doe\",\n      \"email\":\"jackson@example.com\",\n      \"company\":\"Rindge, Inc.\",\n      \"tags\":[\n         \"funny\",\n         \"vip\"\n      ],\n      \"custom_attributes\":{\n         \"area\":\"area51\",\n         \"type\":\"IT\"\n      }\n   },\n   \"answers\":[\n      {\n         \"id\":11261044,\n         \"question\": {\n                \"id\": 44993,\n                \"text\": \"How did we do?\",\n                \"metric\": \"csat\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Great, I'm satisfied.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":\"THE PRINTER IS WORKING AGAIN!!!\",\n         \"follow_up_answer_choice\": null\n      },\n      {\n         \"id\":11261046,\n         \"question\": {\n                \"id\": 4494499793,\n                \"text\": \"How is our responsiveness?\",\n                \"metric\": \"custom\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"It's great.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":null,\n         \"follow_up_answer_choice\": null\n      }\n   ],\n   \"id\":6260581,\n   \"tags\":[\n      \"support request\",\n      \"VIP\"\n   ],\n   \"created\":\"2021-12-23T13:38:54.540655Z\",\n   \"modified\":\"2021-12-23T13:38:54.540685Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Create or update a response (extended)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"warning": "This is a duplicate header and will be overridden by the X-Simplesat-Token header generated by Postman.",
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"survey_id\": 126925,\r\n  \"tags\": [\"chocolate\", \"strawberry\"],\r\n  \"answers\": [\r\n    {\r\n      \"question_id\": 162249,\r\n      \"choice\": \"10\",\r\n      \"comment\": \"\",\r\n      \"follow_up_answer\": \"Thank you 10 times!\"\r\n    }\r\n  ],\r\n  \"team_members\": [\r\n    {\r\n      \"external_id\": null,\r\n      \"name\": \"Alexander\",\r\n      \"email\": \"Alexander@gmail.com\",\r\n      \"custom_attributes\": {\r\n        \"group\": \"Support\",\r\n        \"language\": \"English\"\r\n      },\r\n      \"role\": \"Owner\",\r\n      \"is_primary\": true\r\n    }\r\n  ],\r\n  \"ticket\": {\r\n    \"external_id\": 1234,\r\n    \"subject\": \"My printer is on fire!\",\r\n    \"custom_attributes\": {\r\n      \"priority\": \"Urgent\",\r\n      \"type\": \"Help desk\"\r\n    }\r\n  },\r\n  \"customer\": {\r\n    \"external_id\": \"9942423132967\",\r\n    \"name\": \"Jackson Doe\",\r\n    \"email\": \"jackson@example.com\",\r\n    \"tags\": [\"vip\", \"funny\"],\r\n    \"company\": \"Rindge, Inc.\",\r\n    \"custom_attributes\": {\r\n      \"type\": \"IT\",\r\n      \"area\": \"area51\"\r\n    }\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses/create-or-update",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses",
+								"create-or-update"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create or update a response (extended)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"survey_id\": 15418,\n  \"tags\": [\"chocolate\", \"strawberry\"],\n  \"answers\": [\n    {\n      \"question_id\": 57507,\n      \"choice\": \"4\",\n      \"comment\": null,\n      \"follow_up_answer\": \"Thank you 3 times!\"\n    }\n  ],\n  \"team_members\": [\n    {\n      \"external_id\": \"2340424\",\n      \"name\": \"John Doe\",\n      \"email\": \"jdoe@example.com\",\n      \"custom_attributes\": {\n        \"group\": \"Support\",\n        \"language\": \"English\"\n      },\n      \"role\": \"Assignee\",\n      \"is_primary\": true\n    },\n    {\n      \"external_id\": \"23409978\",\n      \"name\": \"Jane Doe\",\n      \"email\": \"janed@example.com\",\n      \"role\": \"Opened by\",\n      \"is_primary\": false\n    }\n  ],\n  \"ticket\": {\n    \"external_id\": \"2384\",\n    \"subject\": \"My printer is on fire!\",\n    \"custom_attributes\": {\n      \"priority\": \"Urgent\",\n      \"type\": \"Help desk\"\n    }\n  },\n  \"customer\": {\n    \"external_id\": \"9942423132967\",\n    \"name\": \"Jackson Doe\",\n    \"email\": \"jackson@example.com\",\n    \"tags\": [\"vip\", \"funny\"],\n    \"company\": \"Rindge, Inc.\",\n    \"custom_attributes\": {\n      \"type\": \"IT\",\n      \"area\": \"area51\"\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n   \"survey\":{\n      \"id\":17072,\n      \"name\":\"Satisfaction Survey\"\n   },\n   \"ticket\":{\n      \"id\":6312090,\n      \"external_id\":\"2384\",\n      \"subject\":\"My printer is on fire!\",\n      \"custom_attributes\":{\n         \"priority\":\"Urgent\",\n         \"type\":\"Help desk\"\n      }\n   },\n   \"team_members\":[\n      {\n         \"id\":11378,\n         \"external_id\":\"2340424\",\n         \"name\":\"John Doe\",\n         \"email\":\"jdoe@example.com\",\n         \"custom_attributes\":{\n            \"group\":\"Support\",\n            \"language\":\"English\"\n         },\n         \"role\":\"Assignee\",\n         \"is_primary\":true\n      },\n      {\n         \"id\":43901,\n         \"external_id\":\"23409978\",\n         \"name\":\"Jane Doe\",\n         \"email\":\"janed@example.com\",\n         \"custom_attributes\":{\n            \n         },\n         \"role\":\"Opened by\",\n         \"is_primary\":false\n      }\n   ],\n   \"customer\":{\n      \"id\":13592781,\n      \"external_id\":\"9942423132967\",\n      \"name\":\"Jackson Doe\",\n      \"email\":\"jackson@example.com\",\n      \"company\":\"Rindge, Inc.\",\n      \"tags\":[\n         \"funny\",\n         \"vip\"\n      ],\n      \"custom_attributes\":{\n         \"area\":\"area51\",\n         \"type\":\"IT\"\n      }\n   },\n   \"answers\":[\n      {\n         \"id\":11305838,\n         \"question\": {\n                \"id\": 44993,\n                \"text\": \"How did we do?\",\n                \"metric\": \"csat\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Great, I'm satisfied.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":\"Thank you 3 times!\",\n         \"follow_up_answer_choice\": null\n      }\n   ],\n   \"id\":6284765,\n   \"tags\":[\n      \"chocolate\",\n      \"strawberry\"\n   ],\n   \"created\":\"2021-12-27T08:43:07.401951Z\",\n   \"modified\":\"2021-12-27T08:43:07.401979Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update a response (extended)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses/13371566/update",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses",
+								"13371566",
+								"update"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update a response (extended)",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"survey_id\": 15418,\n  \"tags\": [\"chocolate\", \"strawberry\"],\n  \"answers\": [\n    {\n      \"question_id\": 57507,\n      \"choice\": \"4\",\n      \"comment\": null,\n      \"follow_up_answer\": \"Thank you 3 times!\"\n    }\n  ],\n  \"team_members\": [\n    {\n      \"external_id\": \"2340424\",\n      \"name\": \"John Doe\",\n      \"email\": \"jdoe@example.com\",\n      \"custom_attributes\": {\n        \"group\": \"Support\",\n        \"language\": \"English\"\n      },\n      \"role\": \"Assignee\",\n      \"is_primary\": true\n    },\n    {\n      \"external_id\": \"23409978\",\n      \"name\": \"Jane Doe\",\n      \"email\": \"janed@example.com\",\n      \"role\": \"Opened by\",\n      \"is_primary\": false\n    }\n  ],\n  \"ticket\": {\n    \"external_id\": \"2384\",\n    \"subject\": \"My printer is on fire!\",\n    \"custom_attributes\": {\n      \"priority\": \"Urgent\",\n      \"type\": \"Help desk\"\n    }\n  },\n  \"customer\": {\n    \"external_id\": \"9942423132967\",\n    \"name\": \"Jackson Doe\",\n    \"email\": \"jackson@example.com\",\n    \"tags\": [\"vip\", \"funny\"],\n    \"company\": \"Rindge, Inc.\",\n    \"custom_attributes\": {\n      \"type\": \"IT\",\n      \"area\": \"area51\"\n    }\n  }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses/{{id}}/update",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses",
+										"{{id}}",
+										"update"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n   \"survey\":{\n      \"id\":17072,\n      \"name\":\"Satisfaction Survey\"\n   },\n   \"ticket\":{\n      \"id\":6312090,\n      \"external_id\":\"2384\",\n      \"subject\":\"My printer is on fire!\",\n      \"custom_attributes\":{\n         \"priority\":\"Urgent\",\n         \"type\":\"Help desk\"\n      }\n   },\n   \"team_members\":[\n      {\n         \"id\":11378,\n         \"external_id\":\"2340424\",\n         \"name\":\"John Doe\",\n         \"email\":\"jdoe@example.com\",\n         \"custom_attributes\":{\n            \"group\":\"Support\",\n            \"language\":\"English\"\n         },\n         \"role\":\"Assignee\",\n         \"is_primary\":true\n      },\n      {\n         \"id\":43901,\n         \"external_id\":\"23409978\",\n         \"name\":\"Jane Doe\",\n         \"email\":\"janed@example.com\",\n         \"custom_attributes\":{\n            \n         },\n         \"role\":\"Opened by\",\n         \"is_primary\":false\n      }\n   ],\n   \"customer\":{\n      \"id\":13592781,\n      \"external_id\":\"9942423132967\",\n      \"name\":\"Jackson Doe\",\n      \"email\":\"jackson@example.com\",\n      \"company\":\"Rindge, Inc.\",\n      \"tags\":[\n         \"funny\",\n         \"vip\"\n      ],\n      \"custom_attributes\":{\n         \"area\":\"area51\",\n         \"type\":\"IT\"\n      }\n   },\n   \"answers\":[\n      {\n         \"id\":11305838,\n         \"question\": {\n                \"id\": 44993,\n                \"text\": \"How did we do?\",\n                \"metric\": \"csat\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Great, I'm satisfied.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":\"Thank you 3 times!\"\n      }\n   ],\n   \"id\":6284765,\n   \"tags\":[\n      \"chocolate\",\n      \"strawberry\"\n   ],\n   \"created\":\"2021-12-27T08:43:07.401951Z\",\n   \"modified\":\"2021-12-27T08:43:07.401979Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update a response",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/responses/13371566",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"responses",
+								"13371566"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update a response",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"tags\": [\n        \"funny client\",\n        \"feature request\"\n    ],\n    \"ticket\": {\n        \"external_id\": \"119265800000334\",\n        \"subject\": \"My hair is on fire!\",\n        \"custom_attributes\": {\n            \"priority\": \"urgent\"\n        }\n    },\n    \"team_members\": [\n        {\n            \"id\": 42446,\n            \"role\": \"Assignee\",\n            \"is_primary\": true\n        }\n    ],\n    \"answers\": [\n        {\n            \"question_id\": 44993,\n            \"choice\": \"4\",\n            \"comment\": null,\n            \"follow_up_answer\": \"MY HAIR IS NO LONGER ON FIRE!!!\"\n        },\n        {\n            \"question_id\": 44997,\n            \"choice\": \"4\",\n            \"comment\": null,\n            \"follow_up_answer\": null\n        },\n        {\n            \"question_id\": 44991,\n            \"choice\": null,\n            \"comment\": \"Love you!\",\n            \"follow_up_answer\": null\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/responses/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"responses",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n   \"survey\":{\n      \"id\":17072,\n      \"name\":\"Satisfaction Survey\"\n   },\n   \"ticket\":{\n      \"id\":6287916,\n      \"external_id\":\"119265800000334\",\n      \"subject\":\"My hair is on fire!\",\n      \"custom_attributes\":{\n         \"priority\":\"urgent\"\n      }\n   },\n   \"team_members\":[\n      {\n         \"external_id\":\"2340424\",\n         \"name\":\"John Doe\",\n         \"email\":\"jdoe@example.com\",\n         \"custom_attributes\":{\n            \"group\":\"Support\",\n            \"language\":\"English\"\n         },\n         \"role\":\"Assignee\",\n         \"is_primary\":true\n      }\n   ],\n   \"customer\":{\n      \"id\":13592781,\n      \"external_id\":\"9942423132967\",\n      \"name\":\"Jackson Doe\",\n      \"email\":\"jackson@example.com\",\n      \"company\":\"Rindge, Inc.\",\n      \"tags\":[\n         \"funny\",\n         \"vip\"\n      ],\n      \"custom_attributes\":{\n         \"area\":\"area51\",\n         \"type\":\"IT\"\n      }\n   },\n   \"answers\":[\n      {\n         \"id\":11261044,\n         \"question\": {\n                \"id\": 44993,\n                \"text\": \"How did we do?\",\n                \"metric\": \"csat\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Great, I'm satisfied.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":\"MY HAIR IS NO LONGER ON FIRE!!!\"\n      },\n      {\n         \"id\":11261346,\n         \"question\": {\n                \"id\": 4494499793,\n                \"text\": \"How is our responsiveness?\",\n                \"metric\": \"custom\"\n            },\n         \"choice\":\"4\",\n         \"choice_label\":\"Pretty good.\",\n         \"sentiment\":\"positive\",\n         \"comment\":null,\n         \"follow_up_answer\":null\n      },\n      {\n         \"id\":11261347,\n         \"question\": {\n                \"id\": 44991,\n                \"text\": \"Anything else?\",\n                \"metric\": \"custom\"\n            },\n         \"choice\":null,\n         \"choice_label\":null,\n         \"sentiment\":null,\n         \"comment\":\"Love you!\",\n         \"follow_up_answer\":null\n      }\n   ],\n   \"id\":6260581,\n   \"tags\":[\n      \"feature request\",\n      \"funny client\"\n   ],\n   \"created\":\"2021-12-23T13:38:54.540655Z\",\n   \"modified\":\"2021-12-23T13:38:54.687639Z\"\n}"
+						}
+					]
+				}
+			],
+			"description": "## Response model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| created | DateTime |  |\n| modified | DateTime |  |\n| survey_id | Number |  |\n| tags | Array |  |\n| answers | Array | Array of the answer model |\n| team_members | Array | Array of the team member model |\n| ticket | Object | Object of the ticket model |\n| customer_id | Number |  |\n\n## Ticket model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| external_id | String |  |\n| subject | String |  |\n| custom_attributes | Object |  |"
+		},
+		{
+			"name": "Surveys",
+			"item": [
+				{
+					"name": "List surveys",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/surveys",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"surveys"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "List surveys",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/surveys",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"surveys"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"surveys\": [\n        {\n            \"id\": 15418,\n            \"name\": \"Ticket satisfaction\",\n            \"metric\": \"CSAT\"\n        },\n        {\n            \"id\": 14383,\n            \"name\": \"Post-project CES survey\",\n            \"metric\": \"CES\"\n        },\n        {\n            \"id\": 13578,\n            \"name\": \"Quarterly NPS\",\n            \"metric\": \"NPS\"\n        }\n    ]\n}"
+						}
+					]
+				}
+			],
+			"description": "## Survey model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| name | String |  |\n| metric | String |  |"
+		},
+		{
+			"name": "Team members",
+			"item": [
+				{
+					"name": "Get a team member",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/team-members/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"team-members",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get a team member",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/team-members/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"team-members",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 42446,\n    \"external_id\": \"5235893\",\n    \"name\": \"John Smith\",\n    \"email\": \"jsmith@gmail.com\",\n    \"custom_attributes\": {\n        \"language\": \"English\",\n        \"region\": \"North America\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Update a team member",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/team-members/{{id}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"team-members",
+								"{{id}}"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Update a team member",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"custom_attributes\": {\n        \"language\": \"Spanish\",\n        \"region\": \"Mexico\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/team-members/{{id}}",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"team-members",
+										"{{id}}"
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 43857,\n    \"external_id\": \"5235893\",\n    \"name\": \"John Smith\",\n    \"email\": \"jsmith@gmail.com\",\n    \"custom_attributes\": {\n        \"language\": \"Spanish\",\n        \"region\": \"Mexico\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Create or update a team member",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Simplesat-Token",
+								"value": "{{access token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.simplesat.io/api/v1/team-members",
+							"protocol": "https",
+							"host": [
+								"api",
+								"simplesat",
+								"io"
+							],
+							"path": [
+								"api",
+								"v1",
+								"team-members"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Create or update a team member",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "X-Simplesat-Token",
+										"value": "{{access token}}",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"external_id\": \"5235893\",\n    \"name\": \"John Smith\",\n    \"email\": \"jsmith@gmail.com\",\n    \"custom_attributes\": {\n        \"language\": \"English\",\n        \"region\": \"North America\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://api.simplesat.io/api/v1/team-members/",
+									"protocol": "https",
+									"host": [
+										"api",
+										"simplesat",
+										"io"
+									],
+									"path": [
+										"api",
+										"v1",
+										"team-members",
+										""
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"id\": 43857,\n    \"external_id\": \"5235893\",\n    \"name\": \"John Smith\",\n    \"email\": \"jsmith@gmail.com\",\n    \"custom_attributes\": {\n        \"language\": \"English\",\n        \"region\": \"North America\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "## Team member model\n\n| **Attribute** | **Type** | **Description** |\n| --- | --- | --- |\n| id | Number |  |\n| external\\_id | String |  |\n| name | String |  |\n| email | String |  |\n| custom\\_attributes | Object |  |"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{access token}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "X-Simplesat-Token",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "access token",
+			"value": "<Your access token>"
+		},
+		{
+			"key": "simplesat_demo_1316",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		}
+	]
+}
