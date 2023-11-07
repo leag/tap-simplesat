@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing as t
 from pathlib import Path
 from typing import Any, Callable, Iterable
 from urllib.parse import parse_qsl
@@ -15,6 +16,7 @@ from singer_sdk.streams import RESTStream
 
 _Auth = Callable[[requests.PreparedRequest], requests.PreparedRequest]
 SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
+_TToken = t.TypeVar("_TToken")
 
 
 class SimplesatPaginator(BaseHATEOASPaginator):
@@ -68,7 +70,7 @@ class SimplesatStream(RESTStream):
         self,
         context: dict | None,  # noqa: ARG002
         next_page_token: Any | None,  # noqa: ANN401
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # sourcery skip: dict-assign-update-to-union
         """Return a dictionary of values to be used in URL parameterization.
 
         Args:
@@ -83,28 +85,19 @@ class SimplesatStream(RESTStream):
             params["page_size"] = self.config["page_size"]
         if next_page_token:
             params.update(parse_qsl(next_page_token.query))
-        # if self.replication_key:
-        #     params["sort"] = "asc"
-        #     params["order_by"] = self.replication_key
         return params
 
     def prepare_request_payload(
         self,
-        context: dict | None,  # noqa: ARG002
-        next_page_token: Any | None,  # noqa: ARG002, ANN401
+        context: dict | None,
+        next_page_token: _TToken | None,
     ) -> dict | None:
-        """Prepare the data payload for the REST API request.
-
-        By default, no payload will be sent (return None).
-
-        Args:
-            context: The stream context.
-            next_page_token: The next page index or value.
-
-        Returns:
-            A dictionary with the JSON body for a POST requests.
-        """
-        # TODO: Delete this method if no payload is required. (Most REST APIs.)
+        """Prepare the data payload for the REST API request"""
+        if self.rest_method == "POST":
+            fields = {}
+            if self.config.get("start_date"):
+                fields["start_date"] = self.config.get("start_date")
+            return fields
         return None
 
     def parse_response(self, response: requests.Response) -> Iterable[dict]:
@@ -116,22 +109,5 @@ class SimplesatStream(RESTStream):
         Yields:
             Each record from the source.
         """
-        # TODO: Parse response body and return a set of records.
         yield from extract_jsonpath(self.records_jsonpath, input=response.json())
 
-    def post_process(
-        self,
-        row: dict,
-        context: dict | None = None,  # noqa: ARG002
-    ) -> dict | None:
-        """As needed, append or transform raw data to match expected structure.
-
-        Args:
-            row: An individual record from the stream.
-            context: The stream context.
-
-        Returns:
-            The updated record dictionary, or ``None`` to skip the record.
-        """
-        # TODO: Delete this method if not needed.
-        return row
