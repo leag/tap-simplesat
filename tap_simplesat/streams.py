@@ -3,19 +3,10 @@
 from __future__ import annotations
 
 import typing as t
-from pathlib import Path
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_simplesat.client import SimplesatStream
-
-# TODO: Delete this is if not using json files for schema definition
-SCHEMAS_DIR = Path(__file__).parent / Path("./schemas")
-# TODO: - Override `UsersStream` and `GroupsStream` with your own stream definition.
-#       - Copy-paste as many times as needed to create multiple stream types.
-
-
-_TToken = t.TypeVar("_TToken")
 
 
 class AnswersStream(SimplesatStream):
@@ -26,7 +17,7 @@ class AnswersStream(SimplesatStream):
     next_page_token_jsonpath = "$.next"
     primary_keys: t.ClassVar[list[str]] = ["id"]
     schema = th.PropertiesList(
-        th.Property("id", th.IntegerType),
+        th.Property("id", th.IntegerType, required=True),
         th.Property("choice", th.StringType),
         th.Property("choice_label", th.StringType),
         th.Property("choices", th.StringType),
@@ -56,17 +47,6 @@ class AnswersStream(SimplesatStream):
         th.Property("response_id", th.IntegerType),
     ).to_dict()
 
-    def prepare_request_payload(
-        self,
-        context: dict | None,
-        next_page_token: _TToken | None,
-    ) -> dict | None:
-        """Prepare the data payload for the REST API request"""
-        fields = {}
-        if self.config.get("start_date", False):
-            fields["start_date"] = self.config["start_date"]
-        return fields
-
 
 class QuestionsStream(SimplesatStream):
     name = "questions"
@@ -74,7 +54,7 @@ class QuestionsStream(SimplesatStream):
     records_jsonpath = "$.questions[*]"
     primary_keys: t.ClassVar[list[str]] = ["id"]
     schema = th.PropertiesList(
-        th.Property("id", th.IntegerType),
+        th.Property("id", th.IntegerType, required=True),
         th.Property(
             "survey",
             th.ObjectType(
@@ -118,7 +98,7 @@ class ResponsesStream(SimplesatStream):
     next_page_token_jsonpath = "$.next"
     primary_keys: t.ClassVar[list[str]] = ["id"]
     schema = th.PropertiesList(
-        th.Property("id", th.IntegerType),
+        th.Property("id", th.IntegerType, required=True),
         th.Property(
             "survey",
             th.ObjectType(
@@ -128,12 +108,20 @@ class ResponsesStream(SimplesatStream):
         ),
         th.Property("tags", th.ArrayType(th.StringType)),
         th.Property("created", th.DateTimeType),
+        th.Property("modified", th.DateTimeType),
         th.Property(
             "ticket",
             th.ObjectType(
                 th.Property("id", th.IntegerType),
                 th.Property("external_id", th.StringType),
                 th.Property("subject", th.StringType),
+                th.Property(
+                    "custom_attributes",
+                    th.ObjectType(
+                        th.Property("custom_attribute", th.StringType),
+                        additional_properties=True,
+                    ),
+                ),
             ),
         ),
         th.Property(
@@ -162,6 +150,7 @@ class ResponsesStream(SimplesatStream):
                     "custom_attributes",
                     th.ObjectType(
                         th.Property("custom_attribute", th.StringType),
+                        additional_properties=True,
                     ),
                 ),
             ),
@@ -200,17 +189,6 @@ class ResponsesStream(SimplesatStream):
         ),
     ).to_dict()
 
-    def prepare_request_payload(
-        self,
-        context: dict | None,
-        next_page_token: _TToken | None,
-    ) -> dict | None:
-        """Prepare the data payload for the REST API request"""
-        fields = {}
-        if self.config.get("start_date", False):
-            fields["start_date"] = self.config["start_date"]
-        return fields
-
 
 class SurveysStream(SimplesatStream):
     name = "surveys"
@@ -218,7 +196,7 @@ class SurveysStream(SimplesatStream):
     records_jsonpath = "$.surveys[*]"
     primary_keys: t.ClassVar[list[str]] = ["id"]
     schema = th.PropertiesList(
-        th.Property("id", th.IntegerType),
+        th.Property("id", th.IntegerType, required=True),
         th.Property("name", th.StringType),
         th.Property("metric", th.StringType),
     ).to_dict()
